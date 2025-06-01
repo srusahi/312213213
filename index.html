@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .menu-item {
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <div class="menu-item">
+            <h2>BBQ Chiabata</h2>
+            <button class="button" onclick="showDetails('bbq')">Details</button>
+        </div>
+        <div class="menu-item">
+            <h2>Double Club Sandwich</h2>
+            <button class="button" onclick="showDetails('club')">Details</button>
+        </div>
+    </div>
+
+    <div id="details" class="hidden">
+        <h2 id="item-name"></h2>
+        <p id="item-details"></p>
+        <button class="button" onclick="goBack()">Back</button>
+        <button class="button" onclick="orderItem()">Order</button>
+    </div>
+
+    <div id="table-input" class="hidden">
+        <h2>Enter Your Table Number</h2>
+        <input type="number" id="table-number" placeholder="Table Number">
+        <button class="button" onclick="submitOrder()">Submit</button>
+    </div>
+
+    <script>
+        const menuDetails = {
+            bbq: {
+                name: 'BBQ Chiabata',
+                details: 'Beef, tomatoes, pickles, iceberg lettuce, chiabata bread',
+            },
+            club: {
+                name: 'Double Club Sandwich',
+                details: 'Chicken, bacon, lettuce, tomato, mayonnaise, sandwich bread',
+            }
+        };
+
+        function showDetails(item) {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('details').classList.remove('hidden');
+            document.getElementById('item-name').innerText = menuDetails[item].name;
+            document.getElementById('item-details').innerText = menuDetails[item].details;
+            document.getElementById('details').dataset.item = item;
+        }
+
+        function goBack() {
+            document.getElementById('details').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+        }
+
+        function orderItem() {
+            document.getElementById('details').classList.add('hidden');
+            document.getElementById('table-input').classList.remove('hidden');
+        }
+
+        function submitOrder() {
+            const tableNumber = document.getElementById('table-number').value;
+            const item = document.getElementById('details').dataset.item;
+            if (!tableNumber) {
+                alert('Please enter a table number.');
+                return;
+            }
+            // Отправляем данные на сервер Flask
+            fetch('http://localhost:5000/order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    item: menuDetails[item].name,
+                    table: tableNumber,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Order successfully placed!');
+                } else {
+                    alert('Error placing order: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to communicate with the server.');
+            });
+        }
+    </script>
+</body>
+</html>
